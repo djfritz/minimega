@@ -116,7 +116,7 @@ func cliPipe(c *minicli.Command, resp *minicli.Response) error {
 			plumber.Log(pipe, false)
 		}
 	} else if c.BoolArgs["trump"] {
-		plumber.Via(pipe, c.ListArgs["command"])
+		plumber.Trump(pipe, c.ListArgs["command"])
 	} else if data, ok := c.StringArgs["data"]; ok {
 		plumber.Write(pipe, data)
 	} else {
@@ -125,7 +125,7 @@ func cliPipe(c *minicli.Command, resp *minicli.Response) error {
 		resp.Tabular = [][]string{}
 
 		for _, v := range plumber.Pipes() {
-			resp.Tabular = append(resp.Tabular, []string{v.Name(), v.Mode(), fmt.Sprintf("%v", v.NumReaders()), fmt.Sprintf("%v", v.NumWriters()), v.GetVia(), strings.TrimSpace(v.Last())})
+			resp.Tabular = append(resp.Tabular, []string{v.Name(), v.Mode(), fmt.Sprintf("%v", v.NumReaders()), fmt.Sprintf("%v", v.NumWriters()), v.GetTrump(), strings.TrimSpace(v.Last())})
 		}
 	}
 
@@ -145,11 +145,11 @@ func cliPipeClear(c *minicli.Command, resp *minicli.Response) error {
 			return fmt.Errorf("no such pipe: %v", pipe)
 		}
 		plumber.Log(pipe, false)
-	} else if c.BoolArgs["via"] {
+	} else if c.BoolArgs["trump"] {
 		if !ok {
 			return fmt.Errorf("no such pipe: %v", pipe)
 		}
-		plumber.Via(pipe, []string{})
+		plumber.Trump(pipe, []string{})
 	} else {
 		if ok {
 			return plumber.PipeDelete(pipe)
