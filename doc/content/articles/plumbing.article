@@ -85,7 +85,7 @@ pipe. To list current pipes, use the `pipe` API:
 	foo  | round-robin | 2       | 2       |     | a message!
 
 Using the `pipe` API, you can set the delivery mode (explained in the next
-section), write to a pipe, set vias (explained later), and delete pipes. When
+section), write to a pipe, set trumps (explained later), and delete pipes. When
 deleting a pipe, all attached readers will be closed (and receive an EOF).
 
 *** multiplexing
@@ -101,9 +101,9 @@ To change the mode on a named pipe, use the `pipe` API:
 
 	minimega$ pipe foo mode round-robin
 
-*** vias
+*** trumps
 
-Vias are single-stage, external programs that are invoked for *every* read that takes place on a named pipe. They are used in places where a value that is written to a pipe needs to be transformed in some way for every reader that message will be forwarded to. For example, say you want readers on pipe `foo` to have a unique, normally distributed floating point value based on a mean written to the pipe:
+Trumps are single-stage, external programs that are invoked for *every* read that takes place on a named pipe. They are used in places where a value that is written to a pipe needs to be transformed in some way for every reader that message will be forwarded to. For example, say you want readers on pipe `foo` to have a unique, normally distributed floating point value based on a mean written to the pipe:
 
 .image via.png
 
@@ -113,7 +113,7 @@ This is problematic as it requires the agent to check reader and pipe state at
 every potential write. Instead, we can have the pipe use a via to geneate
 unique values for every reader automatically when a write occurs:
 
-	minimega$ pipe foo via "normal -stddev 5.0"
+	minimega$ pipe foo trump "normal -stddev 5.0"
 
 In the above example, "normal" is a program that takes, on standard input, a
 floating point value as a mean, and generates a single value on a normal
@@ -153,9 +153,9 @@ For example, let's construct a simple, linear pipeline with the unix program "se
 	minimega$ pipe foo "the cow says foo"
 	
 	minimega$ pipe
-	name | mode | readers | writers | via | last message
-	bar  | all  | 0       | 1       |     | the cow says moo
-	foo  | all  | 1       | 0       |     | the cow says foo
+	name | mode | readers | writers | trump | last message
+	bar  | all  | 0       | 1       |       | the cow says moo
+	foo  | all  | 1       | 0       |       | the cow says foo
 
 In this example, we created a pipeline starting with a named pipe `foo`, then
 to an external process "sed -u s/foo/moo", and finally back to a named pipe

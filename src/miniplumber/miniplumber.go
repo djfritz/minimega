@@ -69,7 +69,7 @@ type Pipe struct {
 	lastRecipient int64
 	last          string
 	log           bool
-	viaCommand    []string
+	trumpCommand    []string
 	readerCache   []int64
 }
 
@@ -151,15 +151,15 @@ func (p *Plumber) forward(pipe, data string, r int64) error {
 		return fmt.Errorf("so such pipe: %v", pipe)
 	}
 
-	// forwarding with an enabled via is much more involved than just
+	// forwarding with an enabled trump is much more involved than just
 	// forwarding the value unmodified. We instead create values for
 	// /every/ recipient, possibly cached by the previous call to schedule,
 	// and ship the list of recipient values up.
 	pp.lock.Lock()
 	defer pp.lock.Unlock()
 
-	// no vias!
-	if len(pp.viaCommand) == 0 {
+	// no trumps!
+	if len(pp.trumpCommand) == 0 {
 		m.Data[r] = data
 	} else {
 		// update the cache if we need it
@@ -171,7 +171,7 @@ func (p *Plumber) forward(pipe, data string, r int64) error {
 		}
 
 		for _, k := range pp.readerCache {
-			d, err := pp.via(data)
+			d, err := pp.trump(data)
 			if err != nil {
 				return err
 			}
@@ -297,7 +297,7 @@ func (p *Plumber) Plumb(production ...string) error {
 	return nil
 }
 
-func (p *Plumber) Via(pipe string, command []string) {
+func (p *Plumber) Trump(pipe string, command []string) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
@@ -312,7 +312,7 @@ func (p *Plumber) Via(pipe string, command []string) {
 	pp.lock.Lock()
 	defer pp.lock.Unlock()
 
-	pp.viaCommand = command
+	pp.trumpCommand = command
 }
 
 func (p *Plumber) Mode(pipe string, mode int) {
@@ -890,20 +890,20 @@ func (p *Pipe) Log(mode bool) {
 	p.log = mode
 }
 
-func (p *Pipe) GetVia() string {
+func (p *Pipe) GetTrump() string {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	return strings.Join(p.viaCommand, " ")
+	return strings.Join(p.trumpCommand, " ")
 }
 
 // pipe lock is already held
-func (p *Pipe) via(value string) (string, error) {
-	if len(p.viaCommand) == 0 {
+func (p *Pipe) trump(value string) (string, error) {
+	if len(p.trumpCommand) == 0 {
 		return value, nil
 	}
 
-	process, err := exec.LookPath(p.viaCommand[0])
+	process, err := exec.LookPath(p.trumpCommand[0])
 	if err != nil {
 		return "", err
 	}
@@ -913,7 +913,7 @@ func (p *Pipe) via(value string) (string, error) {
 
 	cmd := &exec.Cmd{
 		Path:   process,
-		Args:   p.viaCommand,
+		Args:   p.trumpCommand,
 		Stdin:  stdin,
 		Stdout: &stdout,
 	}
@@ -943,7 +943,7 @@ func (p *Pipe) write(value string, r int64) {
 			log.Debug(fmt.Sprintf("pipe %v: %v", p.name, strings.TrimSpace(value)))
 		}
 		for _, c := range p.readers {
-			d, err := p.via(value)
+			d, err := p.trump(value)
 			if err != nil {
 				log.Errorln(err)
 				return
@@ -959,7 +959,7 @@ func (p *Pipe) write(value string, r int64) {
 			if p.log {
 				log.Debug(fmt.Sprintf("pipe %v: %v", p.name, strings.TrimSpace(value)))
 			}
-			d, err := p.via(value)
+			d, err := p.trump(value)
 			if err != nil {
 				log.Errorln(err)
 				return
