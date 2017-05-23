@@ -25,9 +25,6 @@ var (
 	ccPrefixMap map[int]string
 )
 
-func init() {
-	ccPrefixMap = make(map[int]string)
-}
 
 var ccCLIHandlers = []minicli.Handler{
 	{ // cc

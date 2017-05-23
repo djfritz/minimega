@@ -1150,9 +1150,9 @@ func (vm *ContainerVM) overlayMount() error {
 		"mount",
 		"-t",
 		"overlay",
-		fmt.Sprintf("megamount_%v", vm.ID),
 		"-o",
 		fmt.Sprintf("lowerdir=%v,upperdir=%v,workdir=%v", vm.FilesystemPath, vm.effectivePath, workPath),
+		fmt.Sprintf("megamount_%v", vm.ID),
 		vm.effectivePath,
 	}
 	log.Debug("mounting overlay: %v", args)

@@ -43,17 +43,6 @@ var externalDependencies = map[string]bool{
 	"taskset":   true, // used in optimize.go
 }
 
-func init() {
-	// Add in dependencies from imported packages
-	for _, v := range bridge.ExternalDependencies {
-		externalDependencies[v] = true
-	}
-
-	for _, v := range nbd.ExternalDependencies {
-		externalDependencies[v] = true
-	}
-}
-
 var externalCLIHandlers = []minicli.Handler{
 	{ // check
 		HelpShort: "check that all external executables dependencies exist",

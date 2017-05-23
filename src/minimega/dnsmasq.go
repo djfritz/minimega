@@ -121,9 +121,6 @@ To add a DHCP option:
 	},
 }
 
-func init() {
-	dnsmasqServers = make(map[int]*dnsmasqServer)
-}
 
 func dnsmasqHostInfo(c *minicli.Command, resp *minicli.Response) {
 	// print info about the mapping

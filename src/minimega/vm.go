@@ -147,17 +147,6 @@ var vmInfoLite = []string{
 	"vlan",
 }
 
-func init() {
-	killAck = make(chan int)
-
-	vmID = NewCounter()
-
-	// for serializing VMs
-	gob.Register(VMs{})
-	gob.Register(&KvmVM{})
-	gob.Register(&ContainerVM{})
-}
-
 func NewVM(name, namespace string, vmType VMType, config VMConfig) (VM, error) {
 	switch vmType {
 	case KVM:

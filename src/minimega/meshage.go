@@ -57,15 +57,6 @@ var (
 	meshageTimeout = time.Duration(math.MaxInt64) // default is no timeout
 )
 
-func init() {
-	gob.Register(meshageCommand{})
-	gob.Register(meshageResponse{})
-	gob.Register(meshageVMLaunch{})
-	gob.Register(meshageVMResponse{})
-	gob.Register(iomeshage.IOMMessage{})
-	gob.Register(miniplumber.Message{})
-}
-
 func meshageStart(host string, namespace string, degree, msaTimeout uint, port int) {
 	meshageNode, meshageMessages = meshage.NewNode(host, namespace, degree, port, version.Revision)
 

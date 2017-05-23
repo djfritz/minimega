@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"goreadline"
 	"minicli"
 	"miniclient"
 	log "minilog"
@@ -73,6 +72,49 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+func init() {
+	killAck = make(chan int)
+
+	vmID = NewCounter()
+
+	// for serializing VMs
+	gob.Register(VMs{})
+	gob.Register(&KvmVM{})
+	gob.Register(&ContainerVM{})
+
+	ccPrefixMap = make(map[int]string)
+
+	gob.Register(&HostStats{})
+
+	// Register these so we can serialize the VMs
+	gob.Register(VMs{})
+	gob.Register(&KvmVM{})
+	gob.Register(&ContainerVM{})
+
+	for k, _ := range macs.ValidMACPrefixMap {
+		validMACPrefix = append(validMACPrefix, k)
+	}
+
+	gob.Register(meshageCommand{})
+	gob.Register(meshageResponse{})
+	gob.Register(meshageVMLaunch{})
+	gob.Register(meshageVMResponse{})
+	gob.Register(iomeshage.IOMMessage{})
+	gob.Register(miniplumber.Message{})
+
+	// Add in dependencies from imported packages
+	for _, v := range bridge.ExternalDependencies {
+		externalDependencies[v] = true
+	}
+
+	for _, v := range nbd.ExternalDependencies {
+		externalDependencies[v] = true
+	}
+
+	affinityClearFilter()
+	dnsmasqServers = make(map[int]*dnsmasqServer)
+}
+
 func main() {
 	var err error
 
@@ -114,14 +156,6 @@ func main() {
 		return
 	}
 
-	// warn if we're not root
-	user, err := user.Current()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if user.Uid != "0" {
-		log.Warnln("not running as root")
-	}
 
 	// set global for hostname
 	hostname, err = os.Hostname()
@@ -232,13 +266,9 @@ func main() {
 		}
 	}()
 
-	if !*f_nostdin {
-		cliLocal()
-	} else {
-		<-sig
-		if *f_panic {
-			panic("teardown")
-		}
+	<-sig
+	if *f_panic {
+		panic("teardown")
 	}
 
 	teardown()
@@ -254,7 +284,6 @@ func teardown() {
 	// Clear namespace so that we hit all the VMs
 	SetNamespace("")
 
-	clearAllCaptures()
 	vncClear()
 	dnsmasqKillAll()
 
@@ -269,7 +298,6 @@ func teardown() {
 	}
 
 	commandSocketRemove()
-	goreadline.Rlcleanup()
 
 	if err := os.Remove(filepath.Join(*f_base, "minimega.pid")); err != nil {
 		log.Fatalln(err)

@@ -74,10 +74,6 @@ across namespaces, run "mesh send all host".`,
 	},
 }
 
-func init() {
-	gob.Register(&HostStats{})
-}
-
 func (s *HostStats) IsFull() bool {
 	return s.Limit != 0 && s.VMs >= s.Limit
 }

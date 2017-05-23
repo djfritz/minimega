@@ -8,18 +8,14 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"goreadline"
 	"io"
 	"minicli"
 	log "minilog"
 	"minipager"
 	"net"
 	"os"
-	"os/signal"
 	"path"
-	"strings"
 	"sync"
-	"syscall"
 )
 
 // Request sent to minimega -- ethier a command to run or a string to return
@@ -232,56 +228,5 @@ func (mm *Conn) Suggest(input string) []string {
 
 // Attach creates a CLI interface to the dialed minimega instance
 func (mm *Conn) Attach() {
-	// set up signal handling
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		for s := range sig {
-			if s == os.Interrupt {
-				goreadline.Signal()
-			} else {
-				log.Debug("caught term signal, disconnecting")
-				goreadline.Rlcleanup()
-				os.Exit(0)
-			}
-		}
-	}()
-	defer signal.Stop(sig)
-
-	// start our own rlwrap
-	fmt.Println("CAUTION: calling 'quit' will cause the minimega daemon to exit")
-	fmt.Println("use 'disconnect' or ^d to exit just the minimega command line")
-	fmt.Println()
-	defer goreadline.Rlcleanup()
-
-	var quit bool
-	for {
-		prompt := fmt.Sprintf("minimega:%v$ ", mm.url)
-		line, err := goreadline.Readline(prompt, true)
-		if err != nil {
-			return
-		}
-		cmd := strings.TrimSpace(string(line))
-		log.Debug("got from stdin: `%s`", cmd)
-
-		// don't bother sending blank lines to minimega
-		if cmd == "" {
-			continue
-		}
-
-		// HAX: Shortcut some commands without sending them to minimega
-		if cmd == "disconnect" {
-			log.Debugln("disconnecting")
-			return
-		} else if cmd == "quit" && !quit {
-			fmt.Println("CAUTION: calling 'quit' will cause the minimega daemon to exit")
-			fmt.Println("If you really want to stop the minimega daemon, enter 'quit' again")
-			quit = true
-			continue
-		}
-
-		quit = false
-
-		mm.RunAndPrint(cmd, true)
-	}
+	log.Fatalln("not implemented")
 }

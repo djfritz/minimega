@@ -460,13 +460,6 @@ Returned columns include:
 	},
 }
 
-func init() {
-	// Register these so we can serialize the VMs
-	gob.Register(VMs{})
-	gob.Register(&KvmVM{})
-	gob.Register(&ContainerVM{})
-}
-
 func cliVmStart(c *minicli.Command, resp *minicli.Response) error {
 	return makeErrSlice(vms.Start(c.StringArgs["target"]))
 }

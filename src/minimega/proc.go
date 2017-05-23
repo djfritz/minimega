@@ -11,15 +11,13 @@ import (
 	proc "github.com/c9s/goprocinfo/linux"
 )
 
-// #include <unistd.h>
-import "C"
 
 // ProcLimit is the maximum number of proceses to inspect per VM
 const ProcLimit = 100
 
 var (
-	ClkTck   = float64(C.sysconf(C._SC_CLK_TCK))
-	PageSize = uint64(C.getpagesize())
+	ClkTck   = float64(1.0)
+	PageSize = uint64(4096)
 )
 
 type ProcStats struct {

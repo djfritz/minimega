@@ -19,8 +19,6 @@ import (
 	"time"
 )
 
-// #include "linux/fs.h"
-import "C"
 
 const (
 	INJECT_COMMAND = iota
@@ -180,7 +178,7 @@ func diskInject(dst, partition string, pairs map[string]string, options []string
 			}
 
 			// tell kernel to reread partitions
-			syscall.Syscall(syscall.SYS_IOCTL, f.Fd(), C.BLKRRPART, 0)
+			syscall.Syscall(syscall.SYS_IOCTL, f.Fd(), 0, 0)
 
 			_, err = os.Stat(nbdPath + "p1")
 			if err == nil {

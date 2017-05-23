@@ -20,13 +20,10 @@ package main
 
 import (
 	"fmt"
-	"goreadline"
 	"minicli"
 	log "minilog"
-	"minipager"
 	"net/url"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -44,7 +41,6 @@ func cliSetup() {
 	minicli.Preprocessor = cliPreprocessor
 
 	registerHandlers("bridge", bridgeCLIHandlers)
-	registerHandlers("capture", captureCLIHandlers)
 	registerHandlers("cc", ccCLIHandlers)
 	registerHandlers("deploy", deployCLIHandlers)
 	registerHandlers("disk", diskCLIHandlers)
@@ -364,71 +360,6 @@ func makeCommandHosts(hosts []string, cmd *minicli.Command, ns *Namespace) []*mi
 	}
 
 	return cmds
-}
-
-// local command line interface, wrapping readline
-func cliLocal() {
-	goreadline.DefaultCompleter = defaultCompleter
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
-	go func() {
-		for range sig {
-			goreadline.Signal()
-		}
-	}()
-	defer signal.Stop(sig)
-
-	for {
-		namespace := GetNamespaceName()
-
-		prompt := "minimega$ "
-		if namespace != "" {
-			prompt = fmt.Sprintf("minimega[%v]$ ", namespace)
-		}
-
-		line, err := goreadline.Readline(prompt, true)
-		if err != nil {
-			return
-		}
-		command := string(line)
-		log.Debug("got from stdin: `%v`", command)
-
-		cmd, err := minicli.Compile(command)
-		if err != nil {
-			log.Error("%v", err)
-			//fmt.Printf("closest match: TODO\n")
-			continue
-		}
-
-		// No command was returned, must have been a blank line or a comment
-		// line. Either way, don't try to run a nil command.
-		if cmd == nil {
-			continue
-		}
-
-		// HAX: Don't record the read command
-		if hasCommand(cmd, "read") {
-			cmd.SetRecord(false)
-		}
-
-		// The namespace changed between when we prompted the user (and could
-		// still change before we actually run the command).
-		if namespace != GetNamespaceName() {
-			// TODO: should we abort the command?
-			log.Warn("namespace changed between prompt and execution")
-		}
-
-		for resp := range RunCommands(cmd) {
-			// print the responses
-			minipager.DefaultPager.Page(resp.String())
-
-			errs := resp.Error()
-			if errs != "" {
-				fmt.Fprintln(os.Stderr, errs)
-			}
-		}
-	}
 }
 
 // cliPreprocess performs expansion on a single string and returns the update

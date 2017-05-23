@@ -11,10 +11,8 @@ import (
 	"strconv"
 )
 
-// #include <unistd.h>
-import "C"
 
-var clkTck = int64(C.sysconf(C._SC_CLK_TCK))
+var clkTck = int64(1)
 
 // Qos option types
 type QosType int

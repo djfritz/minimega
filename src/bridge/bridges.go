@@ -13,7 +13,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/gopacket/pcap"
 )
 
 // Bridges manages a collection of `Bridge` structs.
@@ -105,13 +104,6 @@ func (b Bridges) newBridge(name string) error {
 		}
 	}
 
-	if br.handle, err = pcap.OpenLive(br.Name, 1600, true, time.Second); err != nil {
-		goto cleanup
-	}
-
-	if err = br.handle.SetBPFFilter(snoopBPF); err != nil {
-		goto cleanup
-	}
 
 	go br.snooper()
 
@@ -124,10 +116,6 @@ cleanup:
 		log.Errorln(err)
 	}
 
-	if br.handle != nil {
-		// See note in Bridge.destroy().
-		// br.handle.Close()
-	}
 
 	// Try to delete the bridge, if we created it
 	if created {

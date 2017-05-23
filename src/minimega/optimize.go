@@ -91,9 +91,6 @@ information.`,
 	},
 }
 
-func init() {
-	affinityClearFilter()
-}
 
 func cliOptimize(c *minicli.Command, resp *minicli.Response) error {
 	if c.BoolArgs["ksm"] {
