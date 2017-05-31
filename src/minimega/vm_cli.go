@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"io/ioutil"

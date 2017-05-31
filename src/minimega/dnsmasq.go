@@ -121,7 +121,6 @@ To add a DHCP option:
 	},
 }
 
-
 func dnsmasqHostInfo(c *minicli.Command, resp *minicli.Response) {
 	// print info about the mapping
 	resp.Header = []string{"id", "mac", "ip"}

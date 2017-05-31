@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/gob"
 	"fmt"
 	"iomeshage"
 	"math"

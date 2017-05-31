@@ -6,7 +6,6 @@ package main
 
 import (
 	"bridge"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"io/ioutil"

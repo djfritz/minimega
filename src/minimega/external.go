@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"minicli"
 	log "minilog"
-	"nbd"
 	"os/exec"
 	"strconv"
 	"strings"

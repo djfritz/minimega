@@ -19,7 +19,6 @@ import (
 	"time"
 )
 
-
 const (
 	INJECT_COMMAND = iota
 	GET_BACKING_IMAGE_COMMAND

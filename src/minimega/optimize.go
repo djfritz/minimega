@@ -91,7 +91,6 @@ information.`,
 	},
 }
 
-
 func cliOptimize(c *minicli.Command, resp *minicli.Response) error {
 	if c.BoolArgs["ksm"] {
 		if len(c.BoolArgs) == 1 {

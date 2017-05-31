@@ -6,7 +6,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"io/ioutil"

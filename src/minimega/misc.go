@@ -42,7 +42,6 @@ type loggingMutex struct {
 
 var validMACPrefix [][3]byte
 
-
 // makeErrSlice turns a slice of errors into an errSlice which implements the
 // Error interface. This checks to make sure that there is at least one non-nil
 // error in the slice and returns nil otherwise.

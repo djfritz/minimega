@@ -11,7 +11,6 @@ import (
 	proc "github.com/c9s/goprocinfo/linux"
 )
 
-
 // ProcLimit is the maximum number of proceses to inspect per VM
 const ProcLimit = 100
 

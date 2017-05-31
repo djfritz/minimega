@@ -25,7 +25,6 @@ var (
 	ccPrefixMap map[int]string
 )
 
-
 var ccCLIHandlers = []minicli.Handler{
 	{ // cc
 		HelpShort: "command and control commands",
