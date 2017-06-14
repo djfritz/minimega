@@ -5,16 +5,15 @@
 package bridge
 
 import (
-	"fmt"
 	log "minilog"
 )
 
 // CreateContainerTap creates and adds a veth tap, t, to a bridge. If a name is
-// not provided, one will be automatically generated. ns is the network
-// namespace for the tap. mac is the MAC address to assign to the interface.
+// not provided, one will be automatically generated. pid is the network
+// namespace pid for the tap. mac is the MAC address to assign to the interface.
 // vlan is the VLAN for the traffic. index is the veth interface number for the
 // container.
-func (b *Bridge) CreateContainerTap(t string, ns, mac string, vlan, index int) (tap string, err error) {
+func (b *Bridge) CreateContainerTap(t string, mac string, vlan, index int, pid int) (tap string, err error) {
 	bridgeLock.Lock()
 	defer bridgeLock.Unlock()
 
@@ -23,7 +22,7 @@ func (b *Bridge) CreateContainerTap(t string, ns, mac string, vlan, index int) (
 		tap = <-b.nameChan
 	}
 
-	if err := createVeth(tap, ns); err != nil {
+	if err := createVeth(tap, pid, mac, index); err != nil {
 		return "", err
 	}
 
@@ -40,11 +39,6 @@ func (b *Bridge) CreateContainerTap(t string, ns, mac string, vlan, index int) (
 
 	if err = upInterface(tap, false); err != nil {
 		return "", err
-	}
-
-	iface := fmt.Sprintf("veth%v", index)
-	if err = setMAC(ns, iface, mac); err != nil {
-		return
 	}
 
 	// Add the interface

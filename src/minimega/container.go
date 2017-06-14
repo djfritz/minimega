@@ -1088,7 +1088,7 @@ func (vm *ContainerVM) launchNetwork() error {
 			return fmt.Errorf("get bridge: %v", err)
 		}
 
-		nic.Tap, err = br.CreateContainerTap(nic.Tap, vm.netns, nic.MAC, nic.VLAN, i)
+		nic.Tap, err = br.CreateContainerTap(nic.Tap, nic.MAC, nic.VLAN, i, vm.pid)
 		if err != nil {
 			return fmt.Errorf("create tap: %v", err)
 		}

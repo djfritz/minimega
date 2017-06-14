@@ -7,7 +7,9 @@ package bridge
 import (
 	"fmt"
 	log "minilog"
-	"strings"
+	"net"
+
+	"github.com/vishvananda/netlink"
 )
 
 // upInterface activates an interface using the `ip` command. promisc controls
@@ -15,14 +17,19 @@ import (
 func upInterface(name string, promisc bool) error {
 	log.Info("up interface: %v", name)
 
-	args := []string{"ip", "link", "set", name, "up"}
-	if promisc {
-		args = append(args, "promisc", "on")
+	la := netlink.NewLinkAttrs()
+	la.Name = name
+	dev := &netlink.Device{
+		LinkAttrs: la,
 	}
 
-	out, err := processWrapper(args...)
+	err := netlink.LinkSetUp(dev)
 	if err != nil {
-		return fmt.Errorf("up interface failed: %v: %v", err, out)
+		return err
+	}
+
+	if promisc {
+		return netlink.SetPromiscOn(dev)
 	}
 
 	return nil
@@ -32,77 +39,48 @@ func upInterface(name string, promisc bool) error {
 func downInterface(name string) error {
 	log.Info("down interface: %v", name)
 
-	out, err := processWrapper("ip", "link", "set", name, "down")
-	if err != nil {
-		return fmt.Errorf("down interface failed: %v: %v", err, out)
+	la := netlink.NewLinkAttrs()
+	la.Name = name
+	dev := &netlink.Device{
+		LinkAttrs: la,
 	}
 
-	return nil
+	return netlink.LinkSetDown(dev)
 }
 
 // createTap creates a tuntap of the specified name using the `ip` command.
 func createTap(name string) error {
 	log.Info("creating tuntap: %v", name)
 
-	out, err := processWrapper("ip", "tuntap", "add", "mode", "tap", name)
-	if strings.Contains(out, "Device or resource busy") {
-		return errAlreadyExists
-	} else if err != nil {
-		return fmt.Errorf("create tap failed: %v: %v", err, out)
+	la := netlink.NewLinkAttrs()
+	la.Name = name
+	dev := &netlink.Tuntap{
+		LinkAttrs: la,
 	}
 
-	return nil
+	return netlink.LinkAdd(dev)
 }
 
 // createVeth creates a veth of the specified name using the `ip` command.
-func createVeth(name, netnsname string) error {
-	log.Debug("creating veth: %v %v", name, netnsname)
+func createVeth(name string, pid int, mac string, index int) error {
+	log.Debug("creating veth: %v", name)
 
-	args := []string{
-		"ip",
-		"link",
-		"add",
-		name,
-		"type",
-		"veth",
-		"peer",
-		"mega", // does the namespace ignore this?
-		"netns",
-		netnsname,
-	}
+	ifname := fmt.Sprintf("veth%v", index)
 
-	out, err := processWrapper(args...)
+	hwaddr, err := net.ParseMAC(mac)
 	if err != nil {
-		return fmt.Errorf("create veth failed: %v: %v", err, out)
+		return err
 	}
 
-	return nil
-}
-
-// setMAC sets the MAC address for a container interface using the `ip` command.
-func setMAC(netnsname, iface, mac string) error {
-	log.Debug("setting MAC: %v %v %v", netnsname, iface, mac)
-
-	args := []string{
-		"ip",
-		"netns",
-		"exec",
-		netnsname,
-		"ip",
-		"link",
-		"set",
-		"dev",
-		iface,
-		"address",
-		mac,
+	la := netlink.NewLinkAttrs()
+	la.Name = ifname
+	la.Namespace = netlink.NsPid(pid)
+	la.HardwareAddr = hwaddr
+	veth := &netlink.Veth{
+		LinkAttrs: la,
+		PeerName:  name,
 	}
-
-	out, err := processWrapper(args...)
-	if err != nil {
-		return fmt.Errorf("set MAC failed: %v: %v", err, out)
-	}
-
-	return nil
+	return netlink.LinkAdd(veth)
 }
 
 // DestroyTap destroys an `unmanaged` tap using the `ip` command. This can be
@@ -119,10 +97,11 @@ func DestroyTap(name string) error {
 func destroyTap(name string) error {
 	log.Info("destroying tuntap: %v", name)
 
-	out, err := processWrapper("ip", "link", "del", name)
-	if err != nil {
-		return fmt.Errorf("destroy tap failed: %v: %v", err, out)
+	la := netlink.NewLinkAttrs()
+	la.Name = name
+	dev := &netlink.Device{
+		LinkAttrs: la,
 	}
 
-	return nil
+	return netlink.LinkDel(dev)
 }
